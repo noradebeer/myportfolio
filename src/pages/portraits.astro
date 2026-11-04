@@ -1,0 +1,139 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Footer from '../components/Footer.astro';
+
+const photoYears = [
+  {
+    year: '2025',
+    rows: [
+      {
+        className: 'portrait-row-2025',
+        photos: [
+          { src: '/img/lars_photography.jpg', alt: 'Black-and-white portrait of a man in sunglasses' },
+          { src: '/img/lars_voorbeeld.jpg', alt: 'Portrait of a woman with curly hair' },
+        ],
+      },
+    ],
+  },
+  {
+    year: '2026',
+    rows: [
+      {
+        className: 'portrait-row-2026-first',
+        photos: [
+          { src: '/img/nardo_1.jpg', alt: 'Black-and-white portrait beside a poster-covered wall' },
+          { src: '/img/736493632_18084361364378327_151509733159890435_n.jpg', alt: 'Portrait in front of a blue wall' },
+          { src: '/img/734384486_18084361394378327_2706540719464443974_n.jpg', alt: 'Black-and-white portrait beside a wooden wall' },
+        ],
+      },
+      {
+        className: 'portrait-row-2026-second',
+        label: '2026',
+        photos: [
+          { src: '/img/708261048_18078457883378327_7560954031200713780_n.jpg', alt: 'Portrait beside a brick wall' },
+          { src: '/img/710496902_18078457892378327_3632799337012991962_n.jpg', alt: 'Portrait against a pale blue wall' },
+        ],
+      },
+    ],
+  },
+];
+
+const photos = photoYears.flatMap(({ rows }) => rows.flatMap(({ photos: rowPhotos }) => rowPhotos));
+---
+
+<BaseLayout pageTitle="Portraits | Nora de Beer">
+  <main class="photography-page">
+    <div class="photography-gallery">
+      {photoYears.map(({ year, rows }) => (
+        <section class="photo-year" aria-label={`Portraits from ${year}`}>
+          <small class="photo-year-label">{year}</small>
+          {rows.map(({ className, label, photos: rowPhotos }) => (
+            <div class="portrait-row-group">
+              {label && <small class="photo-year-label">{label}</small>}
+              <div class={`photo-row ${className}`}>
+                {rowPhotos.map(({ src, alt }) => {
+                  const photoIndex = photos.findIndex((photo) => photo.src === src);
+                  return (
+                    <button
+                      class="photography-zoom-button"
+                      type="button"
+                      data-lightbox-index={photoIndex}
+                      aria-label={`Open portrait ${photoIndex + 1}`}
+                    >
+                      <img src={src} alt={alt} loading="lazy" />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </section>
+      ))}
+    </div>
+
+    <div class="lightbox" data-lightbox aria-hidden="true">
+      <button class="lightbox-close" type="button" data-lightbox-close aria-label="Close image viewer">×</button>
+      <button class="lightbox-fullscreen" type="button" data-lightbox-fullscreen aria-label="Enter fullscreen">↗</button>
+      <button class="lightbox-arrow lightbox-arrow-prev" type="button" data-lightbox-prev aria-label="Previous image">‹</button>
+      <figure class="lightbox-figure">
+        <img data-lightbox-image alt="" />
+      </figure>
+      <button class="lightbox-arrow lightbox-arrow-next" type="button" data-lightbox-next aria-label="Next image">›</button>
+    </div>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<script>
+  const lightbox = document.querySelector('[data-lightbox]');
+  const lightboxImage = lightbox?.querySelector('[data-lightbox-image]');
+  const galleryImages = [...document.querySelectorAll('[data-lightbox-index]')];
+  const gallerySources = galleryImages.map((image) => image.querySelector('img')?.src);
+  const galleryAlts = galleryImages.map((image) => image.querySelector('img')?.alt ?? 'Portrait');
+  let activeImage = 0;
+
+  const showLightboxImage = (index) => {
+    activeImage = (index + gallerySources.length) % gallerySources.length;
+    if (lightboxImage && gallerySources[activeImage]) {
+      lightboxImage.src = gallerySources[activeImage];
+      lightboxImage.alt = galleryAlts[activeImage];
+    }
+  };
+
+  const closeLightbox = () => {
+    lightbox?.classList.remove('is-open');
+    lightbox?.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('lightbox-open');
+  };
+
+  galleryImages.forEach((image) => {
+    image.addEventListener('click', () => {
+      showLightboxImage(Number(image.dataset.lightboxIndex));
+      lightbox?.classList.add('is-open');
+      lightbox?.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('lightbox-open');
+      lightbox?.querySelector('[data-lightbox-close]')?.focus();
+    });
+  });
+
+  lightbox?.querySelector('[data-lightbox-close]')?.addEventListener('click', closeLightbox);
+  lightbox?.querySelector('[data-lightbox-prev]')?.addEventListener('click', () => showLightboxImage(activeImage - 1));
+  lightbox?.querySelector('[data-lightbox-next]')?.addEventListener('click', () => showLightboxImage(activeImage + 1));
+  lightbox?.addEventListener('click', (event) => {
+    if (event.target === lightbox) closeLightbox();
+  });
+  lightbox?.querySelector('[data-lightbox-fullscreen]')?.addEventListener('click', async () => {
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+    } else {
+      await lightbox?.requestFullscreen();
+    }
+  });
+  document.addEventListener('keydown', (event) => {
+    if (!lightbox?.classList.contains('is-open')) return;
+    if (event.key === 'Escape') closeLightbox();
+    if (event.key === 'ArrowLeft') showLightboxImage(activeImage - 1);
+    if (event.key === 'ArrowRight') showLightboxImage(activeImage + 1);
+  });
+</script>

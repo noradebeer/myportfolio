@@ -1,0 +1,104 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Footer from '../components/Footer.astro';
+
+const photos = [
+  '/img/yumiko_label.jpg',
+  '/img/yumiko_light.jpg',
+  '/img/yumiko_mupi.jpg',
+  '/img/yumiko_wrappingpaper.jpg',
+  '/img/socialmedia_yumiko.jpg',
+];
+---
+
+<BaseLayout>
+  <main class="yumiko-page">
+    <section class="yumiko-intro">
+      <button class="yumiko-zoom-button yumiko-hero" type="button" data-lightbox-index="0" aria-label="Open Yumiko stamp design">
+        <img src="/img/yumiko_stempel.jpg" alt="Yumiko stamp design" />
+      </button>
+
+      <div class="yumiko-caption">
+        <p>
+          Yukimo is a lifestyle clothing brand that focuses primarily on nature, with an edgy twist. The company promises that its products are “Built for Ten Decades” and offers a warranty that includes repairs within a week.
+
+Designed for people who prioritize sustainability over fast fashion, the clothing is suitable for both casual street wear and outdoor activities, featuring rugged textures and earth tones.
+        </p>
+        <small>2026</small>
+      </div>
+    </section>
+
+    <section class="yumiko-gallery">
+      {photos.map((photo, index) => (
+        <button class="yumiko-zoom-button" type="button" data-lightbox-index={index + 1} aria-label={`Open Yumiko project image ${index + 1}`}>
+          <img src={photo} alt="Yumiko project image" loading="lazy" />
+        </button>
+      ))}
+    </section>
+
+    <div class="lightbox" data-lightbox aria-hidden="true">
+      <button class="lightbox-close" type="button" data-lightbox-close aria-label="Close image viewer">×</button>
+      <button class="lightbox-fullscreen" type="button" data-lightbox-fullscreen aria-label="Enter fullscreen">↗</button>
+      <button class="lightbox-arrow lightbox-arrow-prev" type="button" data-lightbox-prev aria-label="Previous image">‹</button>
+      <figure class="lightbox-figure">
+        <img data-lightbox-image alt="" />
+      </figure>
+      <button class="lightbox-arrow lightbox-arrow-next" type="button" data-lightbox-next aria-label="Next image">›</button>
+    </div>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<script>
+  const lightbox = document.querySelector('[data-lightbox]');
+  const lightboxImage = lightbox?.querySelector('[data-lightbox-image]');
+  const galleryImages = [...document.querySelectorAll('[data-lightbox-index]')];
+  const gallerySources = galleryImages.map((image) => image.querySelector('img')?.src);
+  const galleryAlts = galleryImages.map((image) => image.querySelector('img')?.alt ?? 'Yumiko project image');
+  let activeImage = 0;
+
+  const showLightboxImage = (index) => {
+    activeImage = (index + gallerySources.length) % gallerySources.length;
+    if (lightboxImage && gallerySources[activeImage]) {
+      lightboxImage.src = gallerySources[activeImage];
+      lightboxImage.alt = galleryAlts[activeImage];
+    }
+  };
+
+  const closeLightbox = () => {
+    lightbox?.classList.remove('is-open');
+    lightbox?.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('lightbox-open');
+  };
+
+  galleryImages.forEach((image) => {
+    image.addEventListener('click', () => {
+      showLightboxImage(Number(image.dataset.lightboxIndex));
+      lightbox?.classList.add('is-open');
+      lightbox?.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('lightbox-open');
+      lightbox?.querySelector('[data-lightbox-close]')?.focus();
+    });
+  });
+
+  lightbox?.querySelector('[data-lightbox-close]')?.addEventListener('click', closeLightbox);
+  lightbox?.querySelector('[data-lightbox-prev]')?.addEventListener('click', () => showLightboxImage(activeImage - 1));
+  lightbox?.querySelector('[data-lightbox-next]')?.addEventListener('click', () => showLightboxImage(activeImage + 1));
+  lightbox?.addEventListener('click', (event) => {
+    if (event.target === lightbox) closeLightbox();
+  });
+  lightbox?.querySelector('[data-lightbox-fullscreen]')?.addEventListener('click', async () => {
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+    } else {
+      await lightbox?.requestFullscreen();
+    }
+  });
+  document.addEventListener('keydown', (event) => {
+    if (!lightbox?.classList.contains('is-open')) return;
+    if (event.key === 'Escape') closeLightbox();
+    if (event.key === 'ArrowLeft') showLightboxImage(activeImage - 1);
+    if (event.key === 'ArrowRight') showLightboxImage(activeImage + 1);
+  });
+</script>

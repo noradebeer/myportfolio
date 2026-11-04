@@ -1,17 +1,190 @@
 ---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Footer from '../components/Footer.astro';
 
+const works = [
+ {
+    title: 'Photography',
+    type: 'Atmosphere',
+    image: '/img/klavertje4 (3).jpeg',
+    href: '/animations',
+
+  },  
+  
+  
+  
+ {
+    title: 'Project',
+    type: 'Blender, Motion graphics',
+    image: '/img/yumiko_wrappingpaper.jpg',
+    href: '/animations',
+
+  },  
+  
+  
+  {
+    title: 'Yumiko',
+    type: 'Brand identity',
+    image: '/img/yumiko_wrappingpaper.jpg',
+    href: '/yumiko',
+
+  },  
+  
+  { title: 'Portraits', type: 'Photography', image: '/img/lars_photography.jpg', href: '/portraits' },
+  { title: 'Photography', type: 'Visual identity', image: 'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=1000&q=85' },
+];
+
+const heroImages = [
+  '/img/708261048_18078457883378327_7560954031200713780_n.jpg',
+  '/img/caf2303a-6227-4514-b438-d104fae66d46_rw_1920.jpg',
+  'photo-1494438639946-1ebd1d20bf85',
+  'photo-1506157786151-b8491531f063',
+  'photo-1600185365483-26d7a4cc7519',
+  'photo-1513364776144-60967b0f800f',
+];
+
+const heroImageSource = (image) =>
+  image.startsWith('/') ? image : `https://images.unsplash.com/${image}?w=1000&q=85`;
 ---
+<BaseLayout>
+  <section class="hero-gallery" aria-label="Selected visual works">
+    <p class="hero-gallery-title">
+      <img src="/img/SELECTEDVISUALWORKS_GIF.gif" alt="Selected visual works" width="1622" height="277" />
+    </p>
+    <div class="hero-gallery-grid">
+      {heroImages.map((image, index) => (
+        <button class={`hero-gallery-image hero-gallery-image-${index + 1}`} type="button" data-lightbox-index={index} aria-label={`Open selected visual work ${index + 1}`}>
+          <img src={heroImageSource(image)} alt={`Selected visual work ${index + 1}`} />
+        </button>
+      ))}
+    </div>
+  </section>
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+  <div class="lightbox" data-lightbox aria-hidden="true">
+    <button class="lightbox-close" type="button" data-lightbox-close aria-label="Close image viewer">×</button>
+    <button class="lightbox-fullscreen" type="button" data-lightbox-fullscreen aria-label="Enter fullscreen">↗</button>
+    <button class="lightbox-arrow lightbox-arrow-prev" type="button" data-lightbox-prev aria-label="Previous image">‹</button>
+    <figure class="lightbox-figure">
+      <img data-lightbox-image alt="" />
+    </figure>
+    <button class="lightbox-arrow lightbox-arrow-next" type="button" data-lightbox-next aria-label="Next image">›</button>
+  </div>
+
+  <section class="work-section" id="work">
+    <div class="section-heading">
+          <p class="hero-gallery-title">
+      <img src="/img/PROJECTSZWART_GIF.gif" alt="projects" width="581" height="258" />
+        <div class="carousel-controls">
+      <button type="button" data-direction="-1" aria-label="Previous project">←</button>
+      <span>click to view projects</span>
+      <button type="button" data-direction="1" aria-label="Next project">→</button>
+    </div>
+    </div>
+    <div class="project-window" data-carousel>
+      <div class="project-track">
+        {works.concat(works, works).map((work, index) => (
+          work.href ? (
+            <a
+              class="project-card"
+              href={work.href}
+              aria-hidden={index >= works.length ? 'true' : undefined}
+            >
+              <div class="project-image">
+                <img src={work.image} alt={index >= works.length ? '' : work.title} loading="lazy" />
+              </div>
+              <div class="project-meta">
+                <span>{work.title}</span>
+                <span>{work.type}</span>
+              </div>
+            </a>
+          ) : (
+            <div class="project-card" aria-hidden={index >= works.length ? 'true' : undefined}>
+              <div class="project-image">
+                <img src={work.image} alt={index >= works.length ? '' : work.title} loading="lazy" />
+              </div>
+              <div class="project-meta">
+                <span>{work.title}</span>
+                <span>{work.type}</span>
+              </div>
+            </div>
+          )
+        ))}
+      </div>
+    </div>
+
+  </section>
+
+  <Footer />
+</BaseLayout>
+
+<script>
+  const lightbox = document.querySelector('[data-lightbox]');
+  const lightboxImage = lightbox?.querySelector('[data-lightbox-image]');
+  const galleryImages = [...document.querySelectorAll('[data-lightbox-index]')];
+  const gallerySources = galleryImages.map((image) => image.querySelector('img')?.src.replace('w=1000&q=85', 'w=2000&q=90'));
+  let activeImage = 0;
+
+  const showLightboxImage = (index) => {
+    activeImage = (index + gallerySources.length) % gallerySources.length;
+    if (lightboxImage) {
+      lightboxImage.src = gallerySources[activeImage];
+      lightboxImage.alt = `Selected visual work ${activeImage + 1}`;
+    }
+  };
+
+  const closeLightbox = () => {
+    lightbox?.classList.remove('is-open');
+    lightbox?.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('lightbox-open');
+  };
+
+  galleryImages.forEach((image) => {
+    image.addEventListener('click', () => {
+      showLightboxImage(Number(image.dataset.lightboxIndex));
+      lightbox?.classList.add('is-open');
+      lightbox?.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('lightbox-open');
+      lightbox?.querySelector('[data-lightbox-close]')?.focus();
+    });
+  });
+
+  lightbox?.querySelector('[data-lightbox-close]')?.addEventListener('click', closeLightbox);
+  lightbox?.querySelector('[data-lightbox-prev]')?.addEventListener('click', () => showLightboxImage(activeImage - 1));
+  lightbox?.querySelector('[data-lightbox-next]')?.addEventListener('click', () => showLightboxImage(activeImage + 1));
+  lightbox?.addEventListener('click', (event) => {
+    if (event.target === lightbox) closeLightbox();
+  });
+  lightbox?.querySelector('[data-lightbox-fullscreen]')?.addEventListener('click', async () => {
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+    } else {
+      await lightbox?.requestFullscreen();
+    }
+  });
+  document.addEventListener('keydown', (event) => {
+    if (!lightbox?.classList.contains('is-open')) return;
+    if (event.key === 'Escape') closeLightbox();
+    if (event.key === 'ArrowLeft') showLightboxImage(activeImage - 1);
+    if (event.key === 'ArrowRight') showLightboxImage(activeImage + 1);
+  });
+
+  const carousel = document.querySelector('[data-carousel]');
+  const track = carousel?.querySelector('.project-track');
+  const cards = track?.querySelectorAll('.project-card');
+  if (carousel && track && cards?.length) {
+    const groupSize = cards.length / 3;
+    const cardWidth = () => cards[0].getBoundingClientRect().width + 20;
+    carousel.scrollLeft = cardWidth() * groupSize;
+    carousel.addEventListener('scroll', () => {
+      const groupWidth = cardWidth() * groupSize;
+      if (carousel.scrollLeft < groupWidth * 0.5) carousel.scrollLeft += groupWidth;
+      if (carousel.scrollLeft > groupWidth * 1.5) carousel.scrollLeft -= groupWidth;
+    }, { passive: true });
+    carousel.addEventListener('wheel', (event) => {
+      if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) { event.preventDefault(); carousel.scrollLeft += event.deltaY; }
+    }, { passive: false });
+    document.querySelectorAll('[data-direction]').forEach((button) => {
+      button.addEventListener('click', () => carousel.scrollBy({ left: Number(button.dataset.direction) * cardWidth(), behavior: 'smooth' }));
+    });
+  }
+</script>

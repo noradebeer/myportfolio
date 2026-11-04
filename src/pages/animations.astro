@@ -1,0 +1,170 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Footer from '../components/Footer.astro';
+
+const photoYears = [
+  {
+    year: '2025',
+    className: 'photo-year-2025',
+    rows: [
+      {
+        className: 'photo-row-2025-first',
+        photos: [
+          { src: '/img/klavertje4 (4).jpeg', alt: 'Vintage shop beneath a red and white striped awning' },
+          { src: '/img/klavertje4 (3).jpeg', alt: 'A display of vintage jewelry and keepsakes' },
+        ],
+      },
+      {
+        className: 'photo-row-2025-second',
+        photos: [
+          { src: '/img/klavertje4 (2).jpeg', alt: 'An arrangement of vintage objects and framed art' },
+          { src: '/img/klavertje4 (1).jpeg', alt: 'Vintage lamps and objects inside a shop' },
+        ],
+      },
+    ],
+  },
+  {
+    year: '2024',
+    className: 'photo-year-2024',
+    rows: [
+      {
+        className: 'photo-row-2024-first',
+        photos: [
+          { src: '/img/kanker (6).jpg', alt: 'A welder working on a yellow machine part' },
+          { src: '/img/kanker (1).jpg', alt: 'A measurement guide on a worn machine component' },
+        ],
+      },
+      {
+        className: 'photo-row-2024-second',
+        photos: [
+          { src: '/img/kanker (4).jpg', alt: 'A yellow industrial dump truck' },
+          { src: '/img/kanker (6).jpg', alt: 'A welder at work in a metal workshop' },
+        ],
+      },
+      {
+        className: 'photo-row-2024-third',
+        photos: [
+          { src: '/img/kanker (2).jpg', alt: 'A worker measuring a part using technical documents' },
+          { src: '/img/kanker (3).jpg', alt: 'Yellow filters arranged on a workshop shelf' },
+        ],
+      },
+    ],
+  },
+  {
+    year: '2026',
+    className: 'photo-year-2026',
+    rows: [
+      {
+        className: 'photo-row-2026-first',
+        photos: [
+          { src: '/img/stage (1).jpg', alt: 'A busy vintage market inside an industrial hall' },
+          { src: '/img/stage (2).jpg', alt: 'A view across the vintage market hall' },
+        ],
+      },
+      {
+        className: 'photo-row-2026-second',
+        photos: [
+          { src: '/img/stage (4).jpg', alt: 'The market hall seen from above' },
+          { src: '/img/stage (6).jpg', alt: 'Stalls and visitors at the vintage market' },
+        ],
+      },
+    ],
+  },
+];
+
+const photos = photoYears.flatMap(({ rows }) => rows.flatMap(({ photos: rowPhotos }) => rowPhotos));
+---
+
+<BaseLayout pageTitle="Photography | Nora de Beer">
+  <main class="photography-page">
+    <div class="photography-gallery">
+      {photoYears.map(({ year, className, rows }) => (
+        <section class={`photo-year ${className}`} aria-label={`Photography from ${year}`}>
+          <small class="photo-year-label">{year}</small>
+          {rows.map(({ className: rowClassName, photos: rowPhotos }) => (
+            <div class={`photo-row ${rowClassName}`}>
+              {rowPhotos.map(({ src, alt }) => {
+                const photoIndex = photos.findIndex((photo) => photo.src === src && photo.alt === alt);
+                return (
+                  <button
+                    class="photography-zoom-button"
+                    type="button"
+                    data-lightbox-index={photoIndex}
+                    aria-label={`Open ${year} photograph ${photoIndex + 1}`}
+                  >
+                    <img src={src} alt={alt} loading="lazy" />
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </section>
+      ))}
+    </div>
+
+    <div class="lightbox" data-lightbox aria-hidden="true">
+      <button class="lightbox-close" type="button" data-lightbox-close aria-label="Close image viewer">×</button>
+      <button class="lightbox-fullscreen" type="button" data-lightbox-fullscreen aria-label="Enter fullscreen">↗</button>
+      <button class="lightbox-arrow lightbox-arrow-prev" type="button" data-lightbox-prev aria-label="Previous image">‹</button>
+      <figure class="lightbox-figure">
+        <img data-lightbox-image alt="" />
+      </figure>
+      <button class="lightbox-arrow lightbox-arrow-next" type="button" data-lightbox-next aria-label="Next image">›</button>
+    </div>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<script>
+  const lightbox = document.querySelector('[data-lightbox]');
+  const lightboxImage = lightbox?.querySelector('[data-lightbox-image]');
+  const galleryImages = [...document.querySelectorAll('[data-lightbox-index]')];
+  const gallerySources = galleryImages.map((image) => image.querySelector('img')?.src);
+  const galleryAlts = galleryImages.map((image) => image.querySelector('img')?.alt ?? 'Photography Atmosphere project image');
+  let activeImage = 0;
+
+  const showLightboxImage = (index) => {
+    activeImage = (index + gallerySources.length) % gallerySources.length;
+    if (lightboxImage && gallerySources[activeImage]) {
+      lightboxImage.src = gallerySources[activeImage];
+      lightboxImage.alt = galleryAlts[activeImage];
+    }
+  };
+
+  const closeLightbox = () => {
+    lightbox?.classList.remove('is-open');
+    lightbox?.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('lightbox-open');
+  };
+
+  galleryImages.forEach((image) => {
+    image.addEventListener('click', () => {
+      showLightboxImage(Number(image.dataset.lightboxIndex));
+      lightbox?.classList.add('is-open');
+      lightbox?.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('lightbox-open');
+      lightbox?.querySelector('[data-lightbox-close]')?.focus();
+    });
+  });
+
+  lightbox?.querySelector('[data-lightbox-close]')?.addEventListener('click', closeLightbox);
+  lightbox?.querySelector('[data-lightbox-prev]')?.addEventListener('click', () => showLightboxImage(activeImage - 1));
+  lightbox?.querySelector('[data-lightbox-next]')?.addEventListener('click', () => showLightboxImage(activeImage + 1));
+  lightbox?.addEventListener('click', (event) => {
+    if (event.target === lightbox) closeLightbox();
+  });
+  lightbox?.querySelector('[data-lightbox-fullscreen]')?.addEventListener('click', async () => {
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+    } else {
+      await lightbox?.requestFullscreen();
+    }
+  });
+  document.addEventListener('keydown', (event) => {
+    if (!lightbox?.classList.contains('is-open')) return;
+    if (event.key === 'Escape') closeLightbox();
+    if (event.key === 'ArrowLeft') showLightboxImage(activeImage - 1);
+    if (event.key === 'ArrowRight') showLightboxImage(activeImage + 1);
+  });
+</script>

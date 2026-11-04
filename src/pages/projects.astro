@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Footer from '../components/Footer.astro';
+const images = ['photo-1549490349-8643362247b5', '/img/caf2303a-6227-4514-b438-d104fae66d46_rw_1920.jpg', 'photo-1494438639946-1ebd1d20bf85', 'photo-1506157786151-b8491531f063', 'photo-1600185365483-26d7a4cc7519', 'photo-1513364776144-60967b0f800f', 'photo-1541701494587-cb58502866ab', 'photo-1547891654-e66ed7ebb968'];
+const imageSource = (image) =>
+  image.startsWith('/') ? image : `https://images.unsplash.com/${image}?w=1000&q=85`;
+---
+<BaseLayout>
+  <section class="page-intro"><p class="eyebrow">Selected projects</p><h1>Things I<br /><em>made.</em></h1></section>
+  <section class="project-grid">
+    {images.map((image, index) => <figure><img src={imageSource(image)} alt={`Project image ${index + 1}`} /><figcaption><span>{String(index + 1).padStart(2, '0')}</span><span>Visual work</span></figcaption></figure>)}
+  </section>
+  <Footer />
+</BaseLayout>
